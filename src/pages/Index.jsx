@@ -1,54 +1,83 @@
-import React, { useState } from "react";
-import { Box, Heading, Input, Button, Flex, Checkbox, IconButton, List, ListItem, Spacer, Text } from "@chakra-ui/react";
+import React, { useState, useEffect } from "react";
+import { Box, Heading, Input, Button, Flex, Text, Checkbox, IconButton, VStack, HStack, useToast } from "@chakra-ui/react";
 import { FaPlus, FaTrash } from "react-icons/fa";
+
+const Header = () => (
+  <Box bg="blue.500" py={4}>
+    <Heading as="h1" size="xl" textAlign="center" color="white">
+      My Todo List
+    </Heading>
+  </Box>
+);
+
+const TodoItem = ({ todo, onToggle, onDelete }) => (
+  <HStack spacing={4}>
+    <Checkbox isChecked={todo.completed} onChange={() => onToggle(todo.id)} />
+    <Text textDecoration={todo.completed ? "line-through" : "none"}>{todo.text}</Text>
+    <IconButton icon={<FaTrash />} size="sm" onClick={() => onDelete(todo.id)} aria-label="Delete todo" />
+  </HStack>
+);
 
 const Index = () => {
   const [todos, setTodos] = useState([]);
-  const [newTodo, setNewTodo] = useState("");
+  const [inputText, setInputText] = useState("");
+  const toast = useToast();
+
+  useEffect(() => {
+    const storedTodos = JSON.parse(localStorage.getItem("todos")) || [];
+    setTodos(storedTodos);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
 
   const handleAddTodo = () => {
-    if (newTodo.trim() !== "") {
-      setTodos([...todos, { text: newTodo, completed: false }]);
-      setNewTodo("");
+    if (inputText.trim() !== "") {
+      const newTodo = {
+        id: Date.now(),
+        text: inputText,
+        completed: false,
+      };
+      setTodos([...todos, newTodo]);
+      setInputText("");
+    } else {
+      toast({
+        title: "Error",
+        description: "Todo text cannot be empty.",
+        status: "error",
+        duration: 2000,
+        isClosable: true,
+      });
     }
   };
 
-  const handleToggleComplete = (index) => {
-    const updatedTodos = [...todos];
-    updatedTodos[index].completed = !updatedTodos[index].completed;
+  const handleToggleTodo = (id) => {
+    const updatedTodos = todos.map((todo) => (todo.id === id ? { ...todo, completed: !todo.completed } : todo));
     setTodos(updatedTodos);
   };
 
-  const handleDeleteTodo = (index) => {
-    const updatedTodos = todos.filter((_, i) => i !== index);
+  const handleDeleteTodo = (id) => {
+    const updatedTodos = todos.filter((todo) => todo.id !== id);
     setTodos(updatedTodos);
   };
 
   return (
-    <Box maxWidth="500px" margin="auto" p={4}>
-      <Heading as="h1" size="xl" textAlign="center" mb={8}>
-        My Todo List
-      </Heading>
-      <Flex mb={8}>
-        <Input value={newTodo} onChange={(e) => setNewTodo(e.target.value)} placeholder="Enter a new todo" mr={4} />
-        <Button leftIcon={<FaPlus />} colorScheme="blue" onClick={handleAddTodo}>
-          Add Todo
-        </Button>
-      </Flex>
-      <List spacing={4}>
-        {todos.map((todo, index) => (
-          <ListItem key={index} p={4} borderWidth={1} borderRadius="md" backgroundColor={todo.completed ? "gray.100" : "white"}>
-            <Flex alignItems="center">
-              <Checkbox isChecked={todo.completed} onChange={() => handleToggleComplete(index)} mr={4} />
-              <Text textDecoration={todo.completed ? "line-through" : "none"} flexGrow={1}>
-                {todo.text}
-              </Text>
-              <Spacer />
-              <IconButton icon={<FaTrash />} colorScheme="red" size="sm" onClick={() => handleDeleteTodo(index)} />
-            </Flex>
-          </ListItem>
-        ))}
-      </List>
+    <Box>
+      <Header />
+      <Box maxWidth="600px" mx="auto" mt={8} p={4}>
+        <Flex mb={4}>
+          <Input value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="Enter a new todo" mr={4} />
+          <Button onClick={handleAddTodo} colorScheme="blue" leftIcon={<FaPlus />}>
+            Add
+          </Button>
+        </Flex>
+        <VStack spacing={4} align="stretch">
+          {todos.map((todo) => (
+            <TodoItem key={todo.id} todo={todo} onToggle={handleToggleTodo} onDelete={handleDeleteTodo} />
+          ))}
+        </VStack>
+      </Box>
     </Box>
   );
 };
