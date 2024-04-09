@@ -1,49 +1,55 @@
-import { useState } from "react";
-import { Box, Heading, Input, Button, Checkbox, HStack, VStack, IconButton, Spacer, StackDivider } from "@chakra-ui/react";
+import React, { useState } from "react";
+import { Box, Heading, Input, Button, Flex, Checkbox, IconButton, List, ListItem, Spacer, Text } from "@chakra-ui/react";
 import { FaPlus, FaTrash } from "react-icons/fa";
-import Layout from "../components/Layout";
-
-const TodoItem = ({ todo, onDelete, onToggle }) => (
-  <HStack>
-    <Checkbox isChecked={todo.completed} onChange={() => onToggle(todo.id)} />
-    <Box>{todo.text}</Box>
-    <Spacer />
-    <IconButton icon={<FaTrash />} onClick={() => onDelete(todo.id)} />
-  </HStack>
-);
 
 const Index = () => {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState("");
 
   const handleAddTodo = () => {
-    setTodos([...todos, { id: Date.now(), text: newTodo, completed: false }]);
-    setNewTodo("");
+    if (newTodo.trim() !== "") {
+      setTodos([...todos, { text: newTodo, completed: false }]);
+      setNewTodo("");
+    }
   };
 
-  const handleDeleteTodo = (id) => {
-    setTodos(todos.filter((todo) => todo.id !== id));
+  const handleToggleComplete = (index) => {
+    const updatedTodos = [...todos];
+    updatedTodos[index].completed = !updatedTodos[index].completed;
+    setTodos(updatedTodos);
   };
 
-  const handleToggleTodo = (id) => {
-    setTodos(todos.map((todo) => (todo.id === id ? { ...todo, completed: !todo.completed } : todo)));
+  const handleDeleteTodo = (index) => {
+    const updatedTodos = todos.filter((_, i) => i !== index);
+    setTodos(updatedTodos);
   };
 
   return (
-    <Layout>
-      <Heading mb={4}>My Todos</Heading>
-      <HStack mb={4}>
-        <Input value={newTodo} onChange={(e) => setNewTodo(e.target.value)} placeholder="Enter a new todo" />
-        <Button onClick={handleAddTodo} leftIcon={<FaPlus />}>
+    <Box maxWidth="500px" margin="auto" p={4}>
+      <Heading as="h1" size="xl" textAlign="center" mb={8}>
+        My Todo List
+      </Heading>
+      <Flex mb={8}>
+        <Input value={newTodo} onChange={(e) => setNewTodo(e.target.value)} placeholder="Enter a new todo" mr={4} />
+        <Button leftIcon={<FaPlus />} colorScheme="blue" onClick={handleAddTodo}>
           Add Todo
         </Button>
-      </HStack>
-      <VStack divider={<StackDivider />} alignItems="stretch">
-        {todos.map((todo) => (
-          <TodoItem key={todo.id} todo={todo} onDelete={handleDeleteTodo} onToggle={handleToggleTodo} />
+      </Flex>
+      <List spacing={4}>
+        {todos.map((todo, index) => (
+          <ListItem key={index} p={4} borderWidth={1} borderRadius="md" backgroundColor={todo.completed ? "gray.100" : "white"}>
+            <Flex alignItems="center">
+              <Checkbox isChecked={todo.completed} onChange={() => handleToggleComplete(index)} mr={4} />
+              <Text textDecoration={todo.completed ? "line-through" : "none"} flexGrow={1}>
+                {todo.text}
+              </Text>
+              <Spacer />
+              <IconButton icon={<FaTrash />} colorScheme="red" size="sm" onClick={() => handleDeleteTodo(index)} />
+            </Flex>
+          </ListItem>
         ))}
-      </VStack>
-    </Layout>
+      </List>
+    </Box>
   );
 };
 
