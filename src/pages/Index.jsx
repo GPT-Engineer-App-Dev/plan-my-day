@@ -11,7 +11,7 @@ const Header = () => (
 );
 
 const TodoItem = ({ todo, onToggle, onDelete }) => (
-  <HStack spacing={4}>
+  <HStack spacing={3}>
     <Checkbox isChecked={todo.completed} onChange={() => onToggle(todo.id)} />
     <Text textDecoration={todo.completed ? "line-through" : "none"}>{todo.text}</Text>
     <IconButton icon={<FaTrash />} size="sm" onClick={() => onDelete(todo.id)} aria-label="Delete todo" />
@@ -65,7 +65,7 @@ const Index = () => {
   return (
     <Box>
       <Header />
-      <Box maxWidth="600px" mx="auto" mt={8} p={4}>
+      <Box maxWidth="500px" mx="auto" mt={8}>
         <Flex mb={4}>
           <Input value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="Enter a new todo" mr={4} />
           <Button onClick={handleAddTodo} colorScheme="blue" leftIcon={<FaPlus />}>
